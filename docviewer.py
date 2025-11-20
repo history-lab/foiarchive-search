@@ -10,8 +10,8 @@ import re
 from stopwords import get_stopwords
 import pandas as pd
 from textblob import TextBlob
-from prompt_llm import call_deepseek_model
-from similar_docs_idx.find_similar_docs import get_top_five_results
+#from prompt_llm import call_deepseek_model
+#from similar_docs_idx.find_similar_docs import get_top_five_results
 import concurrent.futures
 
 
@@ -92,9 +92,9 @@ def display_sentiment(doc):
     blob = TextBlob(doc.body)
     polarity = blob.sentiment.polarity
     subjectivity = blob.sentiment.subjectivity
-    st.write("###### Document Sentiment")
-    st.write(f"* **Polarity:** {polarity:.2f}")
-    st.write(f"* **Subjectivity:** {subjectivity:.2f}")
+    st.sidebar.write("###### Document Sentiment")
+    st.sidebar.write(f"* **Polarity:** {polarity:.2f}")
+    st.sidebar.write(f"* **Subjectivity:** {subjectivity:.2f}")
 
 def display_topics(doc_id):
     doc_topics_sql = sg.by_doc_id('doc_topics', doc_id)
@@ -131,25 +131,27 @@ def display_cnt(type, cnt):
 def display_common_words(doc):
     words = re.findall(r'\b\w+\b', doc.body.lower())
     filtered_words = [word for word in words if word not in STOP_WORDS and len(word) >= 5]
-    word_counts = Counter(filtered_words).most_common(10)
+    word_counts = Counter(filtered_words).most_common(5)
     df = pd.DataFrame(word_counts, columns=["Word", "Count"])
-    st.write("###### Most Common Words")
-    st.dataframe(df, hide_index=True, use_container_width=True, height=200)
+    #st.write("###### Most Common Words")
+    #st.dataframe(df, hide_index=True, use_container_width=True, height=200)
+    st.sidebar.markdown('### Most common words:')
+    st.sidebar.dataframe(df, hide_index=True)
 
 def display_doc(doc):
-    col1, col2, col3 = st.columns([10, 1, 5])
-    with col1:
-        st.subheader(doc.title)
-        display_date(doc.authored)
-        display_source(doc.source)
-        display_body(doc)
-        display_citation(doc.title, doc.corpus_title, doc.doc_id)
+    #col1, col2, col3 = st.columns([10, 1, 5])
+    #with col1:
+    st.subheader(doc.title)
+    display_date(doc.authored)
+    display_source(doc.source)
+    display_body(doc)
+    display_citation(doc.title, doc.corpus_title, doc.doc_id)
     
-    with col3:
-        st.subheader("Document NLP Analytics")
-        display_common_words(doc)
-        display_sentiment(doc)
-        display_year_references(doc)
+    #with col3:
+    #    st.subheader("Document NLP Analytics")
+    #    #display_common_words(doc)
+    #    display_sentiment(doc)
+    #    display_year_references(doc)
 
 
     # Move sidebar content outside of the columns
@@ -158,8 +160,11 @@ def display_doc(doc):
     display_topics(doc.doc_id)
     display_cnt('Pages', doc.pg_cnt)
     display_cnt('Words', doc.word_cnt)
-    display_similar_documents(doc)
-    display_summary(doc.body[0:5000])
+    st.sidebar.subheader('Document NLP Analytics')
+    display_common_words(doc)
+    display_sentiment(doc)
+    #display_similar_documents(doc)
+    #display_summary(doc.body[0:5000])
 
 print(f'viewer|{datetime.datetime.now()}|{doc_id}', flush=True)    # logging
 

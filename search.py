@@ -115,7 +115,7 @@ if where_clause:
                             }, use_container_width=True)  
         if metrics['doc_cnt'] > c.config["max_rows"]:
             st.markdown(f"##### Search results exceed downloadable document limit.")
-            st.write(f"Download a *sample* of the results below with *{c.config["max_rows"]}* out of *{metrics['doc_cnt']}* rows generated.")
+            st.write(f"Download a sample of the results below with *{c.config['max_rows']}* out of *{metrics['doc_cnt']}* rows generated.")
             data_table_sql = sg.query(template_name='data_table', table_name=c.config["table_name"],
                                     where_clause=where_clause, limit_clause=c.config["max_rows"])
             data_table_df = db.execute(data_table_sql)
