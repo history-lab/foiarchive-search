@@ -1,4 +1,5 @@
-select authored, corpus, classification, title, doc_id, pg_cnt, word_cnt, char_cnt,
-       substr(body, 1, 50000) body
-    from {table_name} {where_clause}
-order by authored, corpus, title;
+SELECT authored, corpus, classification, title, doc_id, pg_cnt, word_cnt, char_cnt,
+       substr(body, 1, 50000) AS body
+FROM {table_name} {where_clause}
+ORDER BY authored, corpus, title
+{limit_clause};

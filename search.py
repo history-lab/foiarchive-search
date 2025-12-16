@@ -83,8 +83,8 @@ if entities:
     sg.add_predicate(display_predicates, f"{entity_function}{entities_nocnt}")
 
   
-where_clause = sg.where_clause(sql_predicates)
-query_display = sg.where_clause(display_predicates)
+where_clause = sg.where_clause(predicates=sql_predicates)
+query_display = sg.where_clause(predicates=display_predicates)
 
 if where_clause:
     st.caption(":grey[Search Query]")
@@ -93,7 +93,7 @@ if where_clause:
     st.code(f"{query_display}", language="sql")
     print(f'query|{datetime.datetime.now()}|{query_display}', flush=True)
     # display metrics
-    metrics_sql = sg.query('metrics', c.config["table_name"], where_clause)
+    metrics_sql = sg.query(template_name='metrics', table_name=c.config["table_name"], where_clause=where_clause)
     metrics_df = db.execute(metrics_sql)
     metrics = metrics_df.iloc[0] 
     st.metric(label="Documents Found", value=f"{metrics['doc_cnt']:,}", delta=None)
@@ -114,11 +114,37 @@ if where_clause:
                                 },
                             }, use_container_width=True)  
         if metrics['doc_cnt'] > c.config["max_rows"]:
-            st.markdown(f"##### Limit results to < {c.config['max_rows']} \
-                        for downloadable metadata and text.")
+            st.markdown(f"##### Search results exceed downloadable document limit.")
+            st.write(f"Download a sample of the results below with *{c.config['max_rows']}* out of *{metrics['doc_cnt']}* rows generated.")
+            data_table_sql = sg.query(template_name='data_table', table_name=c.config["table_name"],
+                                    where_clause=where_clause, limit_clause=c.config["max_rows"])
+            data_table_df = db.execute(data_table_sql)
+            data_table_df['docviewer_url'] = data_table_df['doc_id'].apply(
+                lambda x: f"{c.config['docviewer_url']}?doc_id={x}")
+            st.dataframe(data_table_df,
+                         use_container_width=True, 
+                         hide_index=True,
+                         column_order=c.COLUMN_ORDER, 
+                         column_config=c.COLUMN_CONFIGS)
+            sample_limited_csv = data_table_df.to_csv(index=False).encode('utf-8')
+            col1, col2, col3 = st.columns([4, 3, 4])
+            with col2:
+                st.download_button(
+                    label="Download Sample",
+                    data=sample_limited_csv,
+                    file_name="foi_sample_limited_data.csv",
+                    mime="text/csv",
+                    key="download_sample"
+                )
+
+            st.write(f"Didn't get the expected results? \
+                        [Let us know.]({c.search_results_email(query_display)})")
+
+            # st.markdown(f"##### Limit results to < {c.config['max_rows']} \
+            #            for downloadable metadata and text.")
         else:
-            data_table_sql = sg.query('data_table', c.config["table_name"], 
-                                    where_clause)        
+            data_table_sql = sg.query(template_name='data_table', table_name=c.config["table_name"], 
+                                    where_clause=where_clause)        
             data_table_df = db.execute(data_table_sql)
             data_table_df['docviewer_url'] = data_table_df['doc_id'].apply(
                 lambda x: f"{c.config['docviewer_url']}?doc_id={x}")
@@ -127,7 +153,18 @@ if where_clause:
                          hide_index=True,
                          column_order=c.COLUMN_ORDER, 
                          column_config=c.COLUMN_CONFIGS)  
+            csv_full_report = data_table_df.to_csv(index=False).encode('utf-8')
+            col1, col2, col3 = st.columns([4, 3, 4])
+            with col2:
+                st.download_button(
+                    label="Download Report",
+                    data=csv_full_report,
+                    file_name="foi_full_search_report.csv",
+                    mime="text/csv",
+                    key="download_sample"
+                )
             st.write(f"Didn't get the expected results? \
                      [Let us know.]({c.search_results_email(query_display)})")      
 
+st.markdown("<br><br><br>", unsafe_allow_html=True)
 st.markdown(c.config["email_support"])

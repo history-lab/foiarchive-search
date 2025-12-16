@@ -56,7 +56,8 @@ corpora_description="static/corpora_description.md"
 table_name = "foiarchive.docs"
 max_rows = 2000     # results must be <= to display detail records
 #
-docviewer_url="https://docviewer.history-lab.org"
+docviewer_url = "https://docviewer.history-lab.org"
+# docviewer_url = "http://localhost:8502"
 #
 email_support="""
 Need assistance or have feedback to share? Don't hesitate to 

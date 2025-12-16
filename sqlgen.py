@@ -86,11 +86,14 @@ def where_clause(predicates):
         return ""
     for p in predicates[1:]:
         where += f" and {p}"
+
     return where
 
-def query(template_name, table_name, where_clause):
+def query(template_name, table_name, where_clause, limit_clause=None):
     template = load_dynamic(template_name)
-    return template.format(table_name=table_name, where_clause=where_clause)
+    limit_clause = f"limit {limit_clause}" if limit_clause else ""
+    return template.format(table_name=table_name, where_clause=where_clause, limit_clause=limit_clause)
+
 
 MAX_BARS = 90
 def aggdate_expr(column_name, metrics):
